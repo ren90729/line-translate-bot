@@ -48,17 +48,45 @@ DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")
 def handle_message(event):
     text = event.message.text
 
-    # Deepl翻訳リクエスト
-    url = "https://api-free.deepl.com/v2/translate"
-    params = {
-        "auth_key": DEEPL_API_KEY,
-        "text": text,
-        "target_lang": "JA",  # 英語→日本語に翻訳したい場合
-        "target_lang": "EN"
-    }
+    # 言語判定（ja なら日本語、en なら英語）
+    try:
+        detected_lang = detect(user_text)
+    except:
+        detected_lang = "unknown"
 
-    response = requests.post(url, data=params)
-    result = response.json()
+    if detected_lang == "ja":
+        target_lang = "EN"
+    elif detected_lang == "en":
+        target_lang = "JA"
+    else:
+        # 不明な言語ならそのまま返す
+        reply_text = "翻訳できる言語（日本語・英語）ではありません。"
+        line_bot_api.reply_message(
+            event.reply_token,
+            TextSendMessage(text=reply_text)
+        )
+        return
+
+    # DeepL APIに送信
+    headers = {
+        "Authorization": f"DeepL-Auth-Key {DEEPL_API_KEY}",
+    }
+    data = {
+        "text": user_text,
+        "target_lang": target_lang
+    }
+    response = requests.post("https://api-free.deepl.com/v2/translate", headers=headers, data=data)
+
+    if response.status_code == 200:
+        translated_text = response.json()["translations"][0]["text"]
+        reply_text = f"翻訳結果: {translated_text}"
+    else:
+        reply_text = "翻訳中にエラーが発生しました。"
+
+    line_bot_api.reply_message(
+        event.reply_token,
+        TextSendMessage(text=reply_text)
+    )
 
     # エラーハンドリングと返信
     try:
