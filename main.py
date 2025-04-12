@@ -6,15 +6,6 @@ import os
 
 app = Flask(__name__)
 
-@app.route("/", methods=["GET"])
-def index():
-    return "LINE Translate Bot is running!" 
-
-@app.route("/callback", methods=["POST"]) 
-def callback():
-    print("Webhook受信！")           
-    return "OK", 200  
-
 # 環境変数から取得（後でRenderで設定）
 LINE_CHANNEL_SECRET = os.environ.get('LINE_CHANNEL_SECRET')
 LINE_CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
@@ -37,6 +28,10 @@ def translate_to_english(text):
 def callback():
     signature = request.headers['X-Line-Signature']
     body = request.get_data(as_text=True)
+
+@app.route("/", methods=["GET"])
+def index():
+    return "LINE Translate Bot is running!" 
 
     try:
         handler.handle(body, signature)
