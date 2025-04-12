@@ -40,12 +40,34 @@ def callback():
 
     return 'OK', 200
 
+import requests  # これもファイルの上のほうに追加しておいてね！
+
+DEEPL_API_KEY = os.getenv("DEEPL_API_KEY")
+
 @handler.add(MessageEvent, message=TextMessage)
 def handle_message(event):
-    reply_text = f"あなたのメッセージ：{event.message.text}"
+    text = event.message.text
+
+    # Deepl翻訳リクエスト
+    url = "https://api-free.deepl.com/v2/translate"
+    params = {
+        "auth_key": DEEPL_API_KEY,
+        "text": text,
+        "target_lang": "JA"  # 英語→日本語に翻訳したい場合
+    }
+
+    response = requests.post(url, data=params)
+    result = response.json()
+
+    # エラーハンドリングと返信
+    try:
+        translated_text = result["translations"][0]["text"]
+    except Exception as e:
+        translated_text = "翻訳に失敗しました。"
+
     line_bot_api.reply_message(
         event.reply_token,
-        TextSendMessage(text=reply_text)
+        TextSendMessage(text=translated_text)
     )
 
 if __name__ == "__main__":
