@@ -53,7 +53,7 @@ def handle_message(event):
     params = {
         "auth_key": DEEPL_API_KEY,
         "text": text,
-        "target_lang": "JA"  # 英語→日本語に翻訳したい場合
+        "target_lang": "JA",  # 英語→日本語に翻訳したい場合
         "target_lang": "EN"
     }
 
